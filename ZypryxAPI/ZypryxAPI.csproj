@@ -9,7 +9,12 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.7" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.6" />
-    <PackageReference Include="Zyprix" Version="1.0.14" />
   </ItemGroup>
+
+	<!-- Utility + Zyprix submodule references remove when using dev -->
+    <ItemGroup>
+	    <ProjectReference Include="..\Utility\Utility\Utility.csproj" />
+	    <ProjectReference Include="..\Utility\Zyprix\Zyprix.csproj" />
+    </ItemGroup>
 
 </Project>

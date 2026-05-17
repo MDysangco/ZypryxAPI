@@ -7,7 +7,7 @@ EXPOSE 8080
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 COPY . .
-RUN dotnet publish -c Release -o /app/publish
+RUN dotnet publish "ZypryxAPI/ZypryxAPI.csproj" -c Release -o /app/publish
 
 # Final stage
 FROM base AS final

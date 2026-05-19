@@ -17,6 +17,7 @@ namespace ZypryxAPI.Controllers
             _coinService = coinService;
         }
 
+        [AllowAnonymous]
         [HttpGet]
         [Route("")]
         public async Task<IActionResult> GetAllCoins()

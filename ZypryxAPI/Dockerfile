@@ -1,25 +1,19 @@
-FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
-WORKDIR /app
-EXPOSE 8080
-
-# Build stage
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
-# Copy NuGet.Config so restore uses /root/nuget-feed
-COPY NuGet.Config .
-
-# Copy private NuGet feed into the container
-COPY nuget-feed /root/nuget-feed
-
-# Copy the rest of the source
+# Copy everything from the project folder (this includes NuGet.Config + nuget-feed/)
 COPY . .
 
-# Publish
-RUN dotnet publish "ZypryxAPI/ZypryxAPI.csproj" -c Release -o /app/publish
+# Restore using your local NuGet feed
+RUN dotnet restore "ZypryxAPI.csproj" --configfile NuGet.Config
 
-# Final stage
-FROM base AS final
+# Publish the API
+RUN dotnet publish "ZypryxAPI.csproj" -c Release -o /app/publish
+
+# Runtime image
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
+
 COPY --from=build /app/publish .
+
 ENTRYPOINT ["dotnet", "ZypryxAPI.dll"]

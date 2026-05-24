@@ -50,6 +50,9 @@ builder.Services.AddScoped<ICoinService, CoinService>();
 builder.Services.AddScoped<IReadingService, ReadingService>();
 builder.Services.AddScoped<IConfigurationService, ConfigurationService>();
 
+// Caching
+builder.Services.AddMemoryCache();
+
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {

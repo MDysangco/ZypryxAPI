@@ -5,6 +5,9 @@ using Zyprix.Data.Interfaces;
 using Zyprix.Data.Repositories;
 using Zyprix.Services;
 using Zyprix.Services.Interfaces;
+using ZypryxAPI.Services.Caching;
+using ZypryxAPI.Services.Flushing;
+using Scrutor;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -49,6 +52,18 @@ builder.Services.AddScoped<IKlineService, KlineService>();
 builder.Services.AddScoped<ICoinService, CoinService>();
 builder.Services.AddScoped<IReadingService, ReadingService>();
 builder.Services.AddScoped<IConfigurationService, ConfigurationService>();
+
+
+// Cached wrappers
+builder.Services.Decorate<ICoinService, CachedCoinService>();
+builder.Services.Decorate<IKlineService, CachedKlineService>();
+builder.Services.Decorate<IReadingService, CachedReadingService>();
+
+// Flushing
+builder.Services.AddHostedService<CoinFlushService>();
+builder.Services.AddHostedService<KlineFlushService>();
+builder.Services.AddHostedService<ReadingFlushService>();
+
 
 // Caching
 builder.Services.AddMemoryCache();

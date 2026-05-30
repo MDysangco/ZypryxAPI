@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
+using System.Diagnostics.Eventing.Reader;
 using Zyprix.Data.Interfaces;
 using Zyprix.Models;
 using Zyprix.Services.Interfaces;
@@ -24,12 +25,21 @@ namespace ZypryxAPI.Services.Flushing
 			{
 				var now = DateTime.Now;
 
-				// Next target times today
-				var noon = now.Date.AddHours(12);
-				var midnight = now.Date.AddDays(1);
+				// Round up to the next 5‑minute boundary
+				int minutesToAdd = 5 - (now.Minute % 5);
+				if (minutesToAdd == 5) minutesToAdd = 0; // already on boundary
 
-				// Pick the next one in the future
-				var nextRun = now < noon ? noon : midnight;
+				var nextRun = new DateTime(
+					now.Year,
+					now.Month,
+					now.Day,
+					now.Hour,
+					now.Minute,
+					0
+				).AddMinutes(minutesToAdd);
+
+				if (nextRun <= now)
+					nextRun = nextRun.AddMinutes(5);
 
 				var delay = nextRun - now;
 
@@ -38,6 +48,7 @@ namespace ZypryxAPI.Services.Flushing
 				await Task.Delay(delay, stoppingToken);
 
 				await Flush(stoppingToken);
+				await Prune(stoppingToken);
 			}
 		}
 
@@ -75,7 +86,6 @@ namespace ZypryxAPI.Services.Flushing
 					memoryCache.Remove(cacheKey);
 
 					_logger.LogInformation(	"Flushed {count} klines for coin {coinId} interval {interval} at {time}", klines.Count, coin.Id, interval, DateTime.UtcNow);
-					
 				}
 			}
 			catch (Exception ex)
@@ -83,6 +93,49 @@ namespace ZypryxAPI.Services.Flushing
 				_logger.LogError(ex, "Error during kline flush");
 			}
 		}
+
+		private async Task Prune(CancellationToken cancellationToken)
+		{
+			using var scope = _services.CreateScope();
+
+			var memoryCache = scope.ServiceProvider.GetRequiredService<IMemoryCache>();
+			var coinRepository = scope.ServiceProvider.GetRequiredService<ICoinRepository>();
+			var klineRepository = scope.ServiceProvider.GetRequiredService<IKlineRepository>();
+
+			try
+			{
+				long startDate = 0;
+				long endDate = new DateTimeOffset(DateTime.UtcNow.AddYears(-7).AddDays(-2))
+					.ToUnixTimeMilliseconds();
+
+				int deleted = await klineRepository.DeleteKlinesByDateRange(startDate, endDate);
+
+				var coins = await coinRepository.GetAllCoins();
+				KlineInterval interval = KlineInterval.OneHour;
+
+				foreach (var coin in coins)
+				{
+					string cacheKey = $"klines_{coin.Id}_{interval}";
+					List<Kline>? cached = memoryCache.Get<List<Kline>>(cacheKey);
+
+					if (cached == null)
+					{
+						continue;
+					}
+
+					cached = cached.Where(k => k.KlineOpenTime > endDate).ToList();
+
+					memoryCache.Set(cacheKey, cached);
+				}
+
+				_logger.LogInformation("Pruned old klines (DB + cache) up to {endDate}", endDate);
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, "Error during kline prune");
+			}
+		}
+
 
 	}
 }

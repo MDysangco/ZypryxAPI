@@ -75,7 +75,7 @@ namespace ZypryxAPI.Controllers
                 bool active = coin.Active ?? false;
                 long binanceListingDate = coin.BinanceListingDate ?? 0;
 
-                bool success = await _coinService.UpdateCoin(coin, active, binanceListingDate);
+                bool success = await _coinService.UpdateCoin(coin);
 
                 return Ok(success);
             }

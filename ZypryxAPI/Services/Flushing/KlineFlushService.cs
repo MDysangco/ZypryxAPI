@@ -25,21 +25,12 @@ namespace ZypryxAPI.Services.Flushing
 			{
 				var now = DateTime.Now;
 
-				// Round up to the next 5‑minute boundary
-				int minutesToAdd = 5 - (now.Minute % 5);
-				if (minutesToAdd == 5) minutesToAdd = 0; // already on boundary
+				var noon = now.Date.AddHours(12);
+				var midnight = now.Date.AddDays(1);
 
-				var nextRun = new DateTime(
-					now.Year,
-					now.Month,
-					now.Day,
-					now.Hour,
-					now.Minute,
-					0
-				).AddMinutes(minutesToAdd);
+				var nextRun = now < noon ? noon : midnight;
 
-				if (nextRun <= now)
-					nextRun = nextRun.AddMinutes(5);
+				nextRun = nextRun.AddMinutes(15);
 
 				var delay = nextRun - now;
 
@@ -135,7 +126,6 @@ namespace ZypryxAPI.Services.Flushing
 				_logger.LogError(ex, "Error during kline prune");
 			}
 		}
-
 
 	}
 }

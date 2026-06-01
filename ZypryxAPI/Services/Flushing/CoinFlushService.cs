@@ -24,12 +24,12 @@ namespace ZypryxAPI.Services.Flushing
 			{
 				var now = DateTime.Now;
 
-				// Next target times today
-				var noon = now.Date.AddHours(12);   
+				var noon = now.Date.AddHours(12);
 				var midnight = now.Date.AddDays(1);
 
-				// Pick the next one in the future
 				var nextRun = now < noon ? noon : midnight;
+
+				nextRun = nextRun.AddMinutes(0);
 
 				var delay = nextRun - now;
 

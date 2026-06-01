@@ -24,12 +24,12 @@ namespace ZypryxAPI.Services.Flushing
 			{
 				var now = DateTime.Now;
 
-				// Next target times today
 				var noon = now.Date.AddHours(12);
 				var midnight = now.Date.AddDays(1);
 
-				// Pick the next one in the future
 				var nextRun = now < noon ? noon : midnight;
+
+				nextRun = nextRun.AddMinutes(5);
 
 				var delay = nextRun - now;
 
@@ -51,10 +51,8 @@ namespace ZypryxAPI.Services.Flushing
 			try
 			{
 				List<Configuration>? configurations = memoryCache.Get<List<Configuration>>(AllConfigKey);
-
-				if (configurations != null)
-				{
-
+				if (configurations != null) {
+					await configurationRepository.InsertConfigurations(configurations);
 				}
 			}
 			catch (Exception ex)

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Caching.Memory;
+﻿using Microsoft.AspNetCore.DataProtection.KeyManagement;
+using Microsoft.Extensions.Caching.Memory;
 using Zyprix.Models;
 using Zyprix.Services.Interfaces;
 
@@ -23,24 +24,23 @@ namespace ZypryxAPI.Services.Caching
 			}) ?? new List<Reading>();	
 		}
 
-		public async Task<bool> InsertReading(Reading reading)
-		{
-			List<Reading> readings = await GetReadings(reading.CoinId);
-			readings.Add(reading);
-
-			_memoryCache.Set($"readings_{reading.CoinId}", readings);
-
-			return true;
-		}
-
 		public async Task<bool> InsertReadings(List<Reading> readings)
 		{
-			foreach (var reading in readings)
+			foreach (Reading reading in readings)
 			{
-				await InsertReading(reading);
+				string cacheKey = $"readings_{reading.CoinId}";
+				if (!_memoryCache.TryGetValue(cacheKey, out List<Reading>? cachedReadings))
+				{
+					cachedReadings = new List<Reading>();
+				}
+
+				cachedReadings?.AddRange(reading);
+
+				_memoryCache.Set(cacheKey, cachedReadings);
 			}
 
 			return true;
 		}
+
 	}
 }

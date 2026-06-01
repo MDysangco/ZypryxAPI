@@ -23,24 +23,13 @@ namespace ZypryxAPI.Services.Caching
 			return _memoryCache.Get<List<Configuration>>(AllConfigKey) ?? new List<Configuration>();
 		}
 
-		public async Task<int> InsertConfiguration(Configuration config)
-		{
-			List<Configuration> pending = await GetConfigurations();
-
-			pending.Add(config);
-
-			_memoryCache.Set(AllConfigKey, pending);
-
-			return config.Id;
-		}
-
 		public async Task<bool> InsertConfigurations(List<Configuration> configs)
 		{
-			List<Configuration> pending = await GetConfigurations();
+			List<Configuration> cachedConfigs = await GetConfigurations();
 
-			pending.AddRange(configs);
+			cachedConfigs.AddRange(configs);
 
-			_memoryCache.Set(AllConfigKey, pending);
+			_memoryCache.Set(AllConfigKey, cachedConfigs);
 
 			return true;
 		}

@@ -58,12 +58,13 @@ builder.Services.AddScoped<IConfigurationService, ConfigurationService>();
 builder.Services.Decorate<ICoinService, CachedCoinService>();
 builder.Services.Decorate<IKlineService, CachedKlineService>();
 builder.Services.Decorate<IReadingService, CachedReadingService>();
+builder.Services.Decorate<IConfigurationService, CachedConfiguratiuonService>();
 
 // Flushing
 builder.Services.AddHostedService<CoinFlushService>();
 builder.Services.AddHostedService<KlineFlushService>();
 builder.Services.AddHostedService<ReadingFlushService>();
-
+builder.Services.AddHostedService<ConfigurationFlushService>();
 
 // Caching
 builder.Services.AddMemoryCache();

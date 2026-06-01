@@ -11,8 +11,8 @@
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.6" />
     <PackageReference Include="Microsoft.Data.SqlClient.Extensions.Azure" Version="1.0.0" />
     <PackageReference Include="Scrutor" Version="7.0.0" />
-    <PackageReference Include="Utils" Version="1.0.19" />
-    <PackageReference Include="Zyprix" Version="1.0.19" />
+    <PackageReference Include="Utils" Version="1.0.25" />
+    <PackageReference Include="Zyprix" Version="1.0.25" />
   </ItemGroup>
 
 </Project>

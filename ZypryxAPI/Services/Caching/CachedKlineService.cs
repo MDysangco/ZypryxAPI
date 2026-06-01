@@ -61,34 +61,6 @@ namespace ZypryxAPI.Services.Caching
 			return true;
 		}
 
-		public async Task<int> DeleteKlinesByDateRange(long startDate, long endDate)
-		{
-			List<Coin> coins = await _coinService.GetAllCoins();
-			int removedKlines = 0;
-
-			foreach (Coin coin in coins)
-			{
-				int coinId = coin.Id;
-				KlineInterval interval = KlineInterval.OneHour;
-
-				List<Kline>? cachedKlines = await GetKlines(coinId, interval);
-				if (cachedKlines == null)
-				{
-					continue;
-				}
-
-				int beforeCount = cachedKlines.Count;
-
-				cachedKlines = cachedKlines.Where(k => k.KlineOpenTime < startDate || k.KlineOpenTime > endDate).ToList();
-
-				int afterCount = cachedKlines.Count;
-				removedKlines += beforeCount - afterCount;
-
-				_memoryCache.Set($"klines_{coinId}_{interval}", cachedKlines);
-			}
-
-			return removedKlines;
-		}
 	}
 
 }

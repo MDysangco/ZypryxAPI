@@ -10,7 +10,6 @@ namespace ZypryxAPI.Controllers
     [Route("api/[controller]")]
     public class ReadingController : ControllerBase
     {
-
         private readonly IReadingService _readingService;
 
         public ReadingController(IReadingService readingService)
@@ -18,36 +17,20 @@ namespace ZypryxAPI.Controllers
             _readingService = readingService;
         }
 
-		[HttpPost]
-		[Route("")]
-		public async Task<IActionResult> Insert([FromBody] List<Reading> readings)
-		{
-			try
-			{
+        [HttpPost]
+        [Route("")]
+        public async Task<IActionResult> Insert([FromBody] List<Reading> readings)
+        {
+            try
+            {
 				bool inserted = await _readingService.InsertReadings(readings);
-				return Ok(inserted);
-			}
-			catch (Exception ex)
-			{
-				Console.WriteLine($"Error inserting readings: {ex.Message}");
-				return StatusCode(500, "An error occurred while inserting readings.");
-			}
-		}
-
-        //[HttpPost]
-        //[Route("")]
-        //public async Task<IActionResult> Insert([FromBody] Reading reading)
-        //{
-        //    try
-        //    {
-        //        bool inserted = await _readingService.InsertReading(reading);
-        //        return Ok(inserted);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Console.WriteLine($"Error inserting readings: {ex.Message}");
-        //        return StatusCode(500, "An error occurred while inserting readings.");
-        //    }
-        //}
+                return Ok(inserted);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error inserting readings: {ex.Message}");
+                return StatusCode(500, "An error occurred while inserting readings.");
+            }
+        }
     }
 }

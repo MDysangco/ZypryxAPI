@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Zyprix.Data.Interfaces;
 using Zyprix.Models;
+using Zyprix.Services.Interfaces;
 
 namespace ZypryxAPI.Controllers
 {
@@ -10,26 +11,21 @@ namespace ZypryxAPI.Controllers
     [Route("api/[controller]")]
     public class ConfigurationController : ControllerBase
     {
-        private readonly IConfigurationRepository _configurationRepository;
+        private readonly IConfigurationService _configurationService;
 
-        public ConfigurationController(IConfigurationRepository configurationRepository)
+        public ConfigurationController(IConfigurationService configurationService)
         {
-            _configurationRepository = configurationRepository;
-        }
+            _configurationService = configurationService;
+		}
 
         [HttpPost]
         [Route("")]
-        public async Task<IActionResult> Insert([FromBody] Configuration configuration)
+        public async Task<IActionResult> Insert([FromBody] List<Configuration> configurations)
         {
             try
             {
-                int rowId = await _configurationRepository.InsertConfiguration(configuration);
-                if(rowId <= 0)
-                {
-                    return StatusCode(500, "An error occurred while inserting configuration.");
-                }
-
-                return Ok(rowId);
+                bool inserted = await _configurationService.InsertConfigurations(configurations);
+                return Ok(inserted);
             }
             catch (Exception ex)
             {

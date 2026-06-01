@@ -82,20 +82,5 @@ namespace ZypryxAPI.Controllers
             }
         }
 
-        [HttpDelete]
-        [Route("")]
-        public async Task<IActionResult> Delete([FromQuery] long startDate, [FromQuery] long endDate)
-        {
-            try
-            {
-                int rowsDeleted = await _klineService.DeleteKlinesByDateRange(startDate, endDate);
-                return Ok(rowsDeleted);
-            } 
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error deleting klines: {ex.Message}");
-                return StatusCode(500, "An error occurred while deleting klines.");
-            }
-        }
     }
 }

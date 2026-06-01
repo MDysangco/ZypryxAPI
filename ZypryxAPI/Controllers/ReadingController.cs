@@ -10,7 +10,6 @@ namespace ZypryxAPI.Controllers
     [Route("api/[controller]")]
     public class ReadingController : ControllerBase
     {
-
         private readonly IReadingService _readingService;
 
         public ReadingController(IReadingService readingService)
@@ -20,11 +19,11 @@ namespace ZypryxAPI.Controllers
 
         [HttpPost]
         [Route("")]
-        public async Task<IActionResult> Insert([FromBody] Reading reading)
+        public async Task<IActionResult> Insert([FromBody] List<Reading> readings)
         {
             try
             {
-                bool inserted = await _readingService.InsertReading(reading);
+				bool inserted = await _readingService.InsertReadings(readings);
                 return Ok(inserted);
             }
             catch (Exception ex)

@@ -26,17 +26,31 @@ namespace ZypryxAPI.Services.Caching
 
 		public async Task<bool> InsertReadings(List<Reading> readings)
 		{
-			foreach (Reading reading in readings)
+			IEnumerable<IGrouping<int, Reading>> groups = readings.GroupBy(r => r.CoinId);
+
+			foreach (var group in groups)
 			{
-				string cacheKey = $"readings_{reading.CoinId}";
-				if (!_memoryCache.TryGetValue(cacheKey, out List<Reading>? cachedReadings))
+				int coinId = group.Key;
+				string cacheKey = $"readings_{coinId}";
+
+				List<Reading> cached = await GetReadings(coinId);
+
+				var existingKeys = new HashSet<(DateTime ts, int modelId)> (
+					cached.Select(r => (r.TimeStampUTC, r.ModelId))
+				);
+
+				foreach (Reading reading in group)
 				{
-					cachedReadings = new List<Reading>();
+					var key = (reading.TimeStampUTC, reading.ModelId);
+
+					if (!existingKeys.Contains(key))
+					{
+						cached.Add(reading);
+						existingKeys.Add(key);
+					}
 				}
 
-				cachedReadings?.AddRange(reading);
-
-				_memoryCache.Set(cacheKey, cachedReadings);
+				_memoryCache.Set(cacheKey, cached);
 			}
 
 			return true;

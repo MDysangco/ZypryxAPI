@@ -8,15 +8,15 @@ namespace ZypryxAPI.Services.Flushing
 {
 	public class KlineFlushService : BackgroundService
 	{
+		private readonly int _offsetMinutes;
 		private readonly IServiceProvider _services;
 		private readonly ILogger<KlineFlushService> _logger;
 
-		private const string AllCoinsKey = "all_coins";
-
-		public KlineFlushService(IServiceProvider serviceProvider, ILogger<KlineFlushService> logger)
+		public KlineFlushService(IServiceProvider services, ILogger<KlineFlushService> logger, int offsetMinutes = 0)
 		{
-			_services = serviceProvider;
+			_services = services;
 			_logger = logger;
+			_offsetMinutes = offsetMinutes;
 		}
 
 		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -25,14 +25,29 @@ namespace ZypryxAPI.Services.Flushing
 			{
 				var now = DateTime.Now;
 
-				var noon = now.Date.AddHours(12);
-				var midnight = now.Date.AddDays(1);
+				var oneAM = now.Date.AddHours(1).AddMinutes(_offsetMinutes);
+				var onePM = now.Date.AddHours(13).AddMinutes(_offsetMinutes);
 
-				var nextRun = now < noon ? noon : midnight;
+				DateTime nextRun;
 
-				nextRun = nextRun.AddMinutes(15);
+				if (now < oneAM)
+				{
+					nextRun = oneAM;
+				}
+				else if (now < onePM)
+				{
+					nextRun = onePM;
+				}
+				else
+				{
+					nextRun = oneAM.AddDays(1);
+				}
 
 				var delay = nextRun - now;
+				if (delay < TimeSpan.Zero)
+				{
+					delay = TimeSpan.Zero;
+				}
 
 				_logger.LogInformation("Next kline flush scheduled for {time}", nextRun);
 

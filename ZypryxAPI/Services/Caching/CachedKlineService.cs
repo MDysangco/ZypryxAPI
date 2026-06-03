@@ -9,13 +9,11 @@ namespace ZypryxAPI.Services.Caching
 	public class CachedKlineService : IKlineService
 	{
 		private readonly IKlineService _klineService;
-		private readonly ICoinService _coinService;
 		private readonly IMemoryCache _memoryCache;
 
-		public CachedKlineService(IKlineService klineService, ICoinService coinService, IMemoryCache memoryCache)
+		public CachedKlineService(IKlineService klineService, IMemoryCache memoryCache)
 		{
 			_klineService = klineService;
-			_coinService = coinService;
 			_memoryCache = memoryCache;
 		}
 
@@ -42,9 +40,9 @@ namespace ZypryxAPI.Services.Caching
 		public async Task<bool> InsertKlines(List<Kline> klines)
 		{
 			int? coinId = klines.FirstOrDefault()?.CoinId;
-			KlineInterval? interval = klines.FirstOrDefault()?.Interval;
+			KlineInterval interval = KlineInterval.OneHour;
 
-			if (interval == null || coinId == null)
+			if (coinId == null)
 			{
 				return false;
 			}
@@ -53,7 +51,16 @@ namespace ZypryxAPI.Services.Caching
 
 			if (cachedKlines != null)
 			{
-				cachedKlines.AddRange(klines);
+				HashSet<long> existingTimes = new HashSet<long>(cachedKlines.Select(k => k.KlineOpenTime.GetValueOrDefault()));
+
+				foreach (Kline kline in klines)
+				{
+					if (kline.KlineOpenTime.HasValue && !existingTimes.Contains(kline.KlineOpenTime.Value))
+					{
+						cachedKlines.Add(kline);
+						existingTimes.Add(kline.KlineOpenTime.Value);
+					}
+				}
 
 				_memoryCache.Set($"klines_{coinId}_{interval}", cachedKlines);
 			}

@@ -7,15 +7,17 @@ namespace ZypryxAPI.Services.Flushing
 {
 	public class ConfigurationFlushService : BackgroundService
 	{
+		private readonly int _offsetMinutes;
 		private readonly IServiceProvider _services;
 		private readonly ILogger<ConfigurationFlushService> _logger;
 
 		private const string AllConfigKey = "all_config";
 
-		public ConfigurationFlushService(IServiceProvider serviceProvider, ILogger<ConfigurationFlushService> logger)
+		public ConfigurationFlushService(IServiceProvider serviceProvider, ILogger<ConfigurationFlushService> logger, int offsetMinutes = 0)
 		{
 			_services = serviceProvider;
 			_logger = logger;
+			_offsetMinutes = offsetMinutes;
 		}
 
 		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -24,14 +26,29 @@ namespace ZypryxAPI.Services.Flushing
 			{
 				var now = DateTime.Now;
 
-				var noon = now.Date.AddHours(12);
-				var midnight = now.Date.AddDays(1);
+				var oneAM = now.Date.AddHours(1).AddMinutes(_offsetMinutes);
+				var onePM = now.Date.AddHours(13).AddMinutes(_offsetMinutes);
 
-				var nextRun = now < noon ? noon : midnight;
+				DateTime nextRun;
 
-				nextRun = nextRun.AddMinutes(5);
+				if (now < oneAM)
+				{
+					nextRun = oneAM;
+				}
+				else if (now < onePM)
+				{
+					nextRun = onePM;
+				}
+				else
+				{
+					nextRun = oneAM.AddDays(1);
+				}
 
 				var delay = nextRun - now;
+				if (delay < TimeSpan.Zero)
+				{
+					delay = TimeSpan.Zero;
+				}
 
 				_logger.LogInformation("Next coin flush scheduled for {time}", nextRun);
 

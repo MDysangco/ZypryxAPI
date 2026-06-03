@@ -61,10 +61,15 @@ builder.Services.Decorate<IReadingService, CachedReadingService>();
 builder.Services.Decorate<IConfigurationService, CachedConfiguratiuonService>();
 
 // Flushing
-builder.Services.AddHostedService<CoinFlushService>();
-builder.Services.AddHostedService<KlineFlushService>();
-builder.Services.AddHostedService<ReadingFlushService>();
-builder.Services.AddHostedService<ConfigurationFlushService>();
+builder.Services.AddHostedService(sp =>
+	new CoinFlushService(sp, sp.GetRequiredService<ILogger<CoinFlushService>>(), 0));
+builder.Services.AddHostedService(sp =>
+	new ConfigurationFlushService(sp, sp.GetRequiredService<ILogger<ConfigurationFlushService>>(), 5));
+builder.Services.AddHostedService(sp =>
+	new ReadingFlushService(sp, sp.GetRequiredService<ILogger<ReadingFlushService>>(), 10));
+builder.Services.AddHostedService(sp =>
+	new KlineFlushService(sp, sp.GetRequiredService<ILogger<KlineFlushService>>(), 15));
+
 
 // Caching
 builder.Services.AddMemoryCache();
@@ -85,7 +90,7 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UseAuthentication();
 

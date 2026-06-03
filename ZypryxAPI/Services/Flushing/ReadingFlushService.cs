@@ -6,13 +6,15 @@ namespace ZypryxAPI.Services.Flushing
 {
 	public class ReadingFlushService : BackgroundService
 	{
+		private readonly int _offsetMinutes;
 		private readonly IServiceProvider _services;
 		private readonly ILogger<ReadingFlushService> _logger;
 
-		public ReadingFlushService(IServiceProvider serviceProvider, ILogger<ReadingFlushService> logger)
+		public ReadingFlushService(IServiceProvider serviceProvider, ILogger<ReadingFlushService> logger, int offsetMinutes = 0)
 		{
 			_services = serviceProvider;
 			_logger = logger;
+			_offsetMinutes = offsetMinutes;
 		}
 
 		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -21,14 +23,29 @@ namespace ZypryxAPI.Services.Flushing
 			{
 				var now = DateTime.Now;
 
-				var noon = now.Date.AddHours(12);
-				var midnight = now.Date.AddDays(1);
+				var oneAM = now.Date.AddHours(1).AddMinutes(_offsetMinutes);
+				var onePM = now.Date.AddHours(13).AddMinutes(_offsetMinutes);
 
-				var nextRun = now < noon ? noon : midnight;
+				DateTime nextRun;
 
-				nextRun = nextRun.AddMinutes(10);
+				if (now < oneAM)
+				{
+					nextRun = oneAM;
+				}
+				else if (now < onePM)
+				{
+					nextRun = onePM;
+				}
+				else
+				{
+					nextRun = oneAM.AddDays(1);
+				}
 
 				var delay = nextRun - now;
+				if (delay < TimeSpan.Zero)
+				{
+					delay = TimeSpan.Zero;
+				}
 
 				_logger.LogInformation("Next reading flush scheduled for {time}", nextRun);
 

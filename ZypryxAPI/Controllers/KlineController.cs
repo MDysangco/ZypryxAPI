@@ -17,14 +17,22 @@ namespace ZypryxAPI.Controllers
             _klineService = klineService;
         }
 
-        [AllowAnonymous]
         [HttpGet]
         [Route("")]
-        public async Task<IActionResult> Get([FromQuery]int? coinId, [FromQuery] KlineInterval? interval)
+        public async Task<IActionResult> Get([FromQuery]int? coinId, [FromQuery] KlineInterval? interval, [FromQuery] long? startDate = null, [FromQuery] long? endDate = null)
         {
             try
             {
-                List<Kline> klines = await _klineService.GetKlines(coinId, interval);
+				List<Kline> klines = await _klineService.GetKlines(coinId, interval);
+
+				if (startDate.HasValue && endDate.HasValue)
+                {
+					klines = klines
+						.Where(k => k.KlineOpenTime >= endDate.Value
+								 && k.KlineOpenTime <= startDate.Value)
+						.ToList();
+				}
+
                 return Ok(klines);
             }
             catch (Exception ex)

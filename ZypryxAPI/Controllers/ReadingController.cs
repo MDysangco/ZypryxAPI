@@ -17,7 +17,23 @@ namespace ZypryxAPI.Controllers
             _readingService = readingService;
         }
 
-        [HttpPost]
+        [HttpGet]
+        [Route("")]
+        public async Task<IActionResult> Get([FromQuery] int coinId)
+		{
+			try
+			{
+				List<Reading> readings = await _readingService.GetReadings(coinId);
+				return Ok(readings);
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Error fetching readings: {ex.Message}");
+				return StatusCode(500, "An error occurred while fetching readings.");
+			}
+		}
+
+		[HttpPost]
         [Route("")]
         public async Task<IActionResult> Insert([FromBody] List<Reading> readings)
         {

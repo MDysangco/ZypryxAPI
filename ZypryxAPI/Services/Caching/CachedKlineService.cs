@@ -17,6 +17,22 @@ namespace ZypryxAPI.Services.Caching
 			_memoryCache = memoryCache;
 		}
 
+		public async Task<List<Kline>> GetKlines(int? coinId, KlineInterval? interval, long? startDate = null, long? endDate = null)
+		{
+			return await _memoryCache.GetOrCreateAsync($"klines_{coinId}_{interval}", async entry =>
+			{
+				List<Kline>? klines = await _klineService.GetKlines(coinId, interval);
+
+				if (startDate.HasValue && endDate.HasValue)
+				{
+					klines = klines?.Where(k => k.KlineOpenTime <= startDate && k.KlineOpenTime >= endDate)
+						.OrderByDescending(k => k.KlineOpenTime).ToList();
+				}
+
+				return klines ?? new List<Kline>();
+			}) ?? new List<Kline>();
+		}
+
 		public async Task<List<Kline>> GetKlines(int? coinId, KlineInterval? interval)
 		{
 			return await _memoryCache.GetOrCreateAsync($"klines_{coinId}_{interval}", async entry =>
